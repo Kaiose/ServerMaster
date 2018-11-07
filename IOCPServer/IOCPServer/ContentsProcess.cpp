@@ -53,11 +53,13 @@ void ContentsProcess::Run() {
 
 }
 
+
 void ContentsProcess::AddPackage(Package* package) {
 	EnterCriticalSection(&lock);
 	Package_Queue.push(package);
 	LeaveCriticalSection(&lock);
 }
+
 
 Package* ContentsProcess::GetPackage() {
 	EnterCriticalSection(&lock);

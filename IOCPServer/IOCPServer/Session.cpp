@@ -5,17 +5,13 @@
 
 
 Session::Session(SOCKET socket) : socket(socket) {
-	
-
 	className = "Session";
 	id = 0;
 	memset(ip, NULL, 20);
 	ioData = new IO_Data[IO_ACCEPT];
 	ioData[IO_READ].session = this;
 	ioData[IO_WRITE].session = this;
-
-	Initialize();
-		
+	Initialize();		
 }
 
 
@@ -32,11 +28,10 @@ void Session::Initialize() {
 }
 
 
-void Session::SetType() {
 
+void Session::SetType() {
 	ioData[IO_READ].ioType = IO_READ;
 	ioData[IO_WRITE].ioType = IO_WRITE;
-
 }
 
 void Session::SendPacket(Packet* packet) {
@@ -58,6 +53,7 @@ void Session::SendPacket(Packet* packet) {
 	if (ret == FALSE && WSAGetLastError() != WSA_IO_PENDING) {
 		printf("WSASend : %d \n", WSAGetLastError());
 	}
+
 }
 
 void Session::Recv(int recvBytes) {
@@ -65,9 +61,9 @@ void Session::Recv(int recvBytes) {
 	memcpy(&mainBuffer[totalBytes], ioData[IO_READ].buffer, recvBytes);
 	
 	//memset(ioData[IO_READ].buffer, NULL, recvBytes);
-
+	printf("before totalBytes ===>>>> %d \n", totalBytes);
 	totalBytes += recvBytes;
-	printf("recvBytes : %d \n", recvBytes);
+	printf("totalBytes %d , recvBytes : %d \n", totalBytes , recvBytes);
 	bool result = PacketAnalyzer();
 	if (result == false) {
 		printf("need more Data...");
@@ -90,7 +86,7 @@ void Session::RecvStanby() {
 	DWORD recvBytes;
 	WSABUF wsabuf;
 	wsabuf.buf = ioData[IO_READ].buffer;
-	wsabuf.len = BUF_SIZE;
+	wsabuf.len = BUF_SIZE - totalBytes;
 
 
 	int ret = WSARecv(socket, &wsabuf, 1, &recvBytes, &flags, (LPOVERLAPPED)&ioData[IO_READ], NULL);
@@ -122,7 +118,7 @@ bool Session::PacketAnalyzer() {
 		currentOffset += sizeof(int);
 
 		Packet* packet = GetPacketClass(packetType);
-
+		printf("PacketLen : %d \n", packetLen);
 		memcpy(packet->stream.buffer, &mainBuffer[currentOffset], packetLen - currentOffset);
 
 		Log("Before totalBytes : %d \n", totalBytes);
@@ -131,10 +127,13 @@ bool Session::PacketAnalyzer() {
 		
 		if (totalBytes <= 0)
 			memset(mainBuffer, NULL, BUF_SIZE);
+		else if (totalBytes - packetLen < 0) {
+			memcpy(mainBuffer, &mainBuffer[packetLen], totalBytes);
+			memset(&mainBuffer[totalBytes], NULL, BUF_SIZE - totalBytes);
+		}
 		else
-			memcpy(mainBuffer, &mainBuffer[packetLen], totalBytes - packetLen);
+			memcpy(mainBuffer, &mainBuffer[packetLen], totalBytes);
 	
-		
 		packet->Decoding();
 
 		// Session 으로부터 0.001 초마다 데이터가 들어오게 설정해놓으면

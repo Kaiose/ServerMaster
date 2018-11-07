@@ -129,6 +129,9 @@ void Server::Accept() {
 
 void Server::Prepare_Accept(Session* session) {
 	LPFN_ACCEPTEX pfnAcceptEx = (LPFN_ACCEPTEX)GetSockExtAPI(lstnSocket, WSAID_ACCEPTEX);
+	session->Initialize();
+	session->ioData[IO_READ].Initialize();
+	session->ioData[IO_WRITE].Initialize();
 	char* buf = session->ioData[IO_READ].buffer;
 	if (pfnAcceptEx(lstnSocket, session->socket, buf, 0,
 		sizeof(sockaddr_in) + 16, sizeof(sockaddr_in) + 16,
@@ -169,24 +172,33 @@ void Server::Run() {
 				throw session;
 			}
 
+			
 			switch (ioData->ioType) {
 			case IO_READ:
 				if (Bytes == 0) {
+					if (session == nullptr) {
+						printf("Session is Null.. \n");
+						continue;
+					}
+
 					printf("Complete ZeroByte Receive..\n");
 					session->RecvStanby();
 					continue;
 				}
-				
+			
 				session->Recv(Bytes);
 				packet = nullptr;
 				while ((packet = session->GetPacket()) != nullptr) {
 					contentsProcess->AddPackage(Packaging(session, packet));
 				}
+
 				session->ZeroByteReceive();
 				break;
+			
 			case IO_WRITE:
 				memset(ioData->buffer, NULL, BUF_SIZE);
 				break;
+			
 			case IO_ACCEPT: // session 내부 두 개의 ov가 type이 IO_ACCEPT로 되있다.
 				OnAccept(ioData->session);
 				GetAddress(ioData->session);
