@@ -1,8 +1,3 @@
-/******************************************************************************
-파일명   : Singleton.h
-목적      : 싱글턴 패턴 생성
-사용방식   : public 상속을 받아 사용
-******************************************************************************/
 #pragma once
 
 template<class T>
@@ -16,12 +11,8 @@ protected:
 	Singleton& operator = (const Singleton&) = delete;
 	Singleton& operator = (const Singleton&&) = delete;
 
-	Singleton()
-	{
-	}
-	virtual ~Singleton()
-	{
-	}
+	Singleton() = default;
+	~Singleton() = default;
 
 public:
 	

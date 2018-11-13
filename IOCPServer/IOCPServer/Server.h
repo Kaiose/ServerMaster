@@ -1,4 +1,5 @@
 #pragma once
+
 #include "stdafx.h"
 
 
@@ -22,8 +23,8 @@ class Server
 //	std::set<Session*>	Unused_SessionPool;
 
 public:
+	CRITICAL_SECTION lock;
 	std::string		className;
-
 	ContentsProcess * contentsProcess;
 
 	Server();
@@ -47,6 +48,9 @@ public:
 
 	void OnAccept(Session* session);
 	Package* Packaging(Session* session, Packet* packet);
+
+	virtual void ReadXML();
+
 };
 
 static PVOID GetSockExtAPI(SOCKET sock, GUID guidFn) {

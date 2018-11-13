@@ -18,10 +18,15 @@ Server::Server()
 Server::Server(ContentsProcess* contentsProcess)  {
 
 	className = "Server";
+	
+	sessionCount = 0;
+
 	this->contentsProcess = contentsProcess;
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 
 	status = START;
+	InitializeCriticalSection(&lock);
+	ReadXML();
 	Initialize();
 }
 
@@ -29,6 +34,26 @@ Server::~Server()
 {
 	status = STOP;
 	WSACleanup();
+}
+
+void Server::ReadXML() {
+
+	TiXmlDocument config;
+	config.LoadFile("config.xml");
+
+	TiXmlElement* server = config.FirstChildElement("Server")->FirstChildElement("EchoServer");
+	if (!server) {
+		Log("config.xml is not exist!\n");
+		return;
+	}
+
+	TiXmlElement* IP = server->FirstChildElement("IP");
+	TiXmlElement* Port = server->FirstChildElement("Port");
+
+	strcpy_s(ip, IP->GetText());
+	port = atoi(Port->GetText());
+
+	return;
 }
 
 void Server::Initialize() {
@@ -51,6 +76,7 @@ void Server::Create_Resources() {
 
 		SOCKET sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
 		Session* session = new Session(sock);
+
 		Prepare_Accept(session);
 	}
 
@@ -58,13 +84,13 @@ void Server::Create_Resources() {
 
 void Server::Release_Resources() {
 	if (Unused_SessionPool.size() < MIN) {
-		printf("Release Failed !!  Unused_SessionPool Size : %d \n ", Unused_SessionPool.size());
+		printf("Release Failed !!  Unused_SessionPool Size : %zd \n ", Unused_SessionPool.size());
 		return;
 	}
 
 	session_it it = Unused_SessionPool.begin();
 	
-	int count = MIN;
+	int count = Unused_SessionPool.size()/2;
 	while (count > 0) {
 		Session* session = *it;
 		session_it next_it = it;
@@ -75,7 +101,7 @@ void Server::Release_Resources() {
 		delete session;
 	}
 
-	printf("Release Success !! Unused_SessionPool Size : %d \n", Unused_SessionPool.size());
+	printf("Release Success !! Unused_SessionPool Size : %zd \n", Unused_SessionPool.size());
 
 }
 
@@ -88,8 +114,8 @@ void Server::Listen() {
 
 	SOCKADDR_IN serverAddr;
 	serverAddr.sin_family = PF_INET;
-	serverAddr.sin_port = htons(9100); // port
-	inet_pton(AF_INET, "127.0.0.1", &(serverAddr.sin_addr)); // ip;
+	serverAddr.sin_port = htons(port); // port
+	inet_pton(AF_INET, ip, &(serverAddr.sin_addr)); // ip;
 	int addrlen = sizeof(serverAddr);
 	int ret = bind(lstnSocket, (struct sockaddr*)&serverAddr, addrlen);
 	if (ret == SOCKET_ERROR) {
@@ -105,7 +131,6 @@ void Server::Listen() {
 
 	CreateIoCompletionPort((HANDLE)lstnSocket, hIOCP, NULL, 0);
 
-	
 }
 
 
@@ -142,7 +167,10 @@ void Server::Prepare_Accept(Session* session) {
 			return;
 		}
 	}
+	EnterCriticalSection(&lock);
+	session->setId(sessionCount++);
 	Unused_SessionPool.insert(session);
+	LeaveCriticalSection(&lock);
 }  
 
 void Server::Create_Iocp_Handle() {
@@ -181,7 +209,7 @@ void Server::Run() {
 						continue;
 					}
 
-					printf("Complete ZeroByte Receive..\n");
+//					printf("Complete ZeroByte Receive..\n");
 					session->RecvStanby();
 					continue;
 				}
@@ -192,7 +220,8 @@ void Server::Run() {
 					contentsProcess->AddPackage(Packaging(session, packet));
 				}
 
-				session->ZeroByteReceive();
+				session->RecvStanby();
+				//session->ZeroByteReceive();
 				break;
 			
 			case IO_WRITE:
@@ -204,8 +233,11 @@ void Server::Run() {
 				GetAddress(ioData->session);
 				// Pool Managed
 				session_it it = Unused_SessionPool.find(ioData->session);
+				
+				EnterCriticalSection(&lock);
 				Using_SessionPool.insert(*it);
 				Unused_SessionPool.erase(it);
+				LeaveCriticalSection(&lock);
 				if (Unused_SessionPool.size() <= 0)
 					Create_Resources();
 				ShowPool();
@@ -237,9 +269,11 @@ void Server::Resource_Recycle(Session* session) {
 	LPFN_DISCONNECTEX pFnDisconnect = (LPFN_DISCONNECTEX)GetSockExtAPI(session->socket, WSAID_DISCONNECTEX);
 	pFnDisconnect(session->socket, NULL, TF_REUSE_SOCKET, 0);
 	Prepare_Accept(session);
-	session_it it = Using_SessionPool.find(session);
+	//session_it it = Using_SessionPool.find(session);
+	EnterCriticalSection(&lock);
 	Using_SessionPool.erase(session);
-	Unused_SessionPool.insert(session);
+	LeaveCriticalSection(&lock);
+//	Unused_SessionPool.insert(session);
 }
 
 
@@ -248,13 +282,13 @@ void Server::OnAccept(Session* session) {
 	if (!CreateIoCompletionPort((HANDLE)session->socket, hIOCP, (ULONG_PTR)session, 0)) {
 		printf("Session :: CreateIOCompletionPort Failed : %d\n", WSAGetLastError());
 	}
-	//session->RecvStanby();
-	session->ZeroByteReceive();
+	session->RecvStanby();
+	//session->ZeroByteReceive();
 }
 
 void Server::ShowPool() {
 
-	printf("Using Pool Count : %d , Unused Pool Count %d \n", Using_SessionPool.size(), Unused_SessionPool.size());
+	printf("Using Pool Count : %zd , Unused Pool Count %zd \n", Using_SessionPool.size(), Unused_SessionPool.size());
 
 }
 

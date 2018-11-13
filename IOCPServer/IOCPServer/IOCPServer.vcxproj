@@ -44,6 +44,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -104,6 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -149,8 +151,10 @@
   <ItemGroup>
     <ClInclude Include="Clock.h" />
     <ClInclude Include="ContentsProcess.h" />
+    <ClInclude Include="Database.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="PacketClass.h" />
+    <ClInclude Include="PacketMaker.h" />
     <ClInclude Include="PacketProcess.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="Session.h" />
@@ -159,11 +163,15 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Util.h" />
+    <ClInclude Include="Util\tinyXml\tinystr.h" />
+    <ClInclude Include="Util\tinyXml\tinyxml.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Clock.cpp" />
     <ClCompile Include="ContentsProcess.cpp" />
+    <ClCompile Include="Database.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PacketMaker.cpp" />
     <ClCompile Include="PacketProcess.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="Session.cpp" />
@@ -173,9 +181,16 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Util\tinyXml\tinystr.cpp" />
+    <ClCompile Include="Util\tinyXml\tinyxml.cpp" />
+    <ClCompile Include="Util\tinyXml\tinyxmlerror.cpp" />
+    <ClCompile Include="Util\tinyXml\tinyxmlparser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="config.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

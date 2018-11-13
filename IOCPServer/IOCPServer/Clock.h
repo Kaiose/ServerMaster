@@ -1,4 +1,5 @@
 #pragma once
+#include "stdafx.h"
 
 
 #define clock Clock::getInstance()

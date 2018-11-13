@@ -2,9 +2,14 @@
 #include "Session.h"
 
 
+#include <sqlext.h>
+
+
 
 
 Session::Session(SOCKET socket) : socket(socket) {
+
+
 	className = "Session";
 	id = 0;
 	memset(ip, NULL, 20);
@@ -40,7 +45,7 @@ void Session::SendPacket(Packet* packet) {
 	int headerSize = sizeof(int);
 	int packetLen = headerSize + packet->stream.offset;
 	
-	memcpy(&ioData[IO_WRITE].buffer, &packetLen, headerSize);
+	memcpy(&ioData[IO_WRITE].buffer, &packetLen, packetLen);
 	memcpy(&ioData[IO_WRITE].buffer[headerSize], packet->stream.buffer, packet->stream.offset);
 
 	WSABUF wsaBuf;
@@ -61,9 +66,9 @@ void Session::Recv(int recvBytes) {
 	memcpy(&mainBuffer[totalBytes], ioData[IO_READ].buffer, recvBytes);
 	
 	//memset(ioData[IO_READ].buffer, NULL, recvBytes);
-	printf("before totalBytes ===>>>> %d \n", totalBytes);
+	//printf("before totalBytes ===>>>> %d \n", totalBytes);
 	totalBytes += recvBytes;
-	printf("totalBytes %d , recvBytes : %d \n", totalBytes , recvBytes);
+	//printf("totalBytes %d , recvBytes : %d \n", totalBytes , recvBytes);
 	bool result = PacketAnalyzer();
 	if (result == false) {
 		printf("need more Data...");
@@ -91,7 +96,7 @@ void Session::RecvStanby() {
 
 	int ret = WSARecv(socket, &wsabuf, 1, &recvBytes, &flags, (LPOVERLAPPED)&ioData[IO_READ], NULL);
 	if (ret == FALSE && WSAGetLastError() != WSA_IO_PENDING) {
-		printf("WSARecv : %d \n", WSAGetLastError());
+	//	printf("WSARecv : %d \n", WSAGetLastError());
 	}
 
 	
@@ -118,12 +123,12 @@ bool Session::PacketAnalyzer() {
 		currentOffset += sizeof(int);
 
 		Packet* packet = GetPacketClass(packetType);
-		printf("PacketLen : %d \n", packetLen);
+		//printf("PacketLen : %d \n", packetLen);
 		memcpy(packet->stream.buffer, &mainBuffer[currentOffset], packetLen - currentOffset);
 
-		Log("Before totalBytes : %d \n", totalBytes);
+		//Log("Before totalBytes : %d \n", totalBytes);
 		totalBytes = totalBytes - packetLen;
-		Log("after totalBytes : %d \n", totalBytes);
+		//Log("after totalBytes : %d \n", totalBytes);
 		
 		if (totalBytes <= 0)
 			memset(mainBuffer, NULL, BUF_SIZE);
@@ -163,14 +168,6 @@ Packet* Session::GetPacket() {
 
 }
 
-Packet* Session::GetPacketClass(PacketType packetType) {
-	switch (packetType) {
-	case E_C_REQ_CHAT: return new PK_C_REQ_CHAT();
-	case E_S_ANS_CHAT: return new PK_S_ANS_CHAT();
-	}
-
-	return nullptr;
-}
 
 void Session::ZeroByteReceive() {
 	
@@ -182,7 +179,7 @@ void Session::ZeroByteReceive() {
 	wsabuf.len = 0;
 	int ret = WSARecv(socket, &wsabuf, 1, &recvBytes,&flags, &ioData[IO_READ], NULL);
 	if (ret == FALSE && WSAGetLastError() != WSA_IO_PENDING) {
-		printf("WSARecv : %d \n", WSAGetLastError());
+	//	printf("WSARecv : %d \n", WSAGetLastError());
 	}
 }
 
@@ -193,4 +190,28 @@ void Session::Close() {
 void Session::Clear() {
 	closesocket(socket);
 	SAFE_DELETE(ioData);
+}
+
+
+Packet* Session::GetPacketClass(PacketType packetType) {
+	switch (packetType) {
+	case E_C_REQ_EXIT: return new PK_C_REQ_EXIT();
+	case E_C_REQ_SIGNUP: return new PK_C_REQ_SIGNUP();
+	case E_S_ANS_SIGNUP: return new PK_S_ANS_SIGNUP();
+	case E_C_REQ_SIGNIN: return new PK_C_REQ_SIGNIN();
+	case E_S_ANS_SIGNIN: return new PK_S_ANS_SIGNIN();
+	case E_S_NOTIFY_SERVER: return new PK_S_NOTIFY_SERVER();
+	case E_C_REQ_CONNECT: return new PK_C_REQ_CONNECT();
+	case E_S_ANS_CONNECT: return new PK_S_ANS_CONNECT();
+	case E_C_REQ_CONNECT_ROOM: return new PK_C_REQ_CONNECT_ROOM();
+	case E_S_ANS_CONNECT_ROOM: return new PK_S_ANS_CONNECT_ROOM();
+	case E_S_NOTIFY_OTHER_CLIENT: return new PK_S_NOTIFY_OTHER_CLIENT();
+	case E_C_REQ_CHAT: return new PK_C_REQ_CHAT();
+	case E_S_ANS_CHAT: return new PK_S_ANS_CHAT();
+	case E_C_REQ_MOVE: return new PK_C_REQ_MOVE();
+	case E_S_ANS_MOVE: return new PK_S_ANS_MOVE();
+	
+	}
+
+	return nullptr;
 }

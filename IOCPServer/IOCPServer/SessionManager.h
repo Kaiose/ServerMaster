@@ -3,7 +3,6 @@
 #include "stdafx.h"
 
 
-std::unordered_map<int, Session*>::iterator it_map;
 
 class SessionManager : public Singleton<SessionManager>{
 
@@ -14,6 +13,7 @@ private:
 	std::string		className;
 
 	std::unordered_map<int,Session*> SessionMap;
+	session_map_it it_map;
 
 	CRITICAL_SECTION lock;
 	SessionManager() {
@@ -34,7 +34,6 @@ public:
 	}
 	void DeleteSession(Session* session) {
 		EnterCriticalSection(&lock);
-
 		for (it_map = SessionMap.begin(); it_map != SessionMap.end(); ++it_map) {
 			if (it_map->second == session) {
 				SessionMap.erase(it_map->first);

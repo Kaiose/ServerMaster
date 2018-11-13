@@ -28,6 +28,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Database">
+      <UniqueIdentifier>{ad95c5f9-19ac-4c4c-85f8-6f60a37ce585}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util\tinyxml">
+      <UniqueIdentifier>{fc698eeb-dfc5-4f60-94f9-350620091e81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PacketExel">
+      <UniqueIdentifier>{f704205a-6114-400a-87af-c988ff761eb9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -63,8 +72,20 @@
     <ClInclude Include="Logger.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="Database.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\tinyXml\tinystr.h">
+      <Filter>Util\tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\tinyXml\tinyxml.h">
+      <Filter>Util\tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketMaker.h">
+      <Filter>PacketExel</Filter>
+    </ClInclude>
     <ClInclude Include="Session.h">
-      <Filter>Util</Filter>
+      <Filter>Session</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -86,11 +107,34 @@
     <ClCompile Include="Session.cpp">
       <Filter>Session</Filter>
     </ClCompile>
+    <ClCompile Include="Database.cpp">
+      <Filter>Database</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\tinyXml\tinyxmlparser.cpp">
+      <Filter>Util\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\tinyXml\tinystr.cpp">
+      <Filter>Util\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\tinyXml\tinyxml.cpp">
+      <Filter>Util\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="Util\tinyXml\tinyxmlerror.cpp">
+      <Filter>Util\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketMaker.cpp">
+      <Filter>PacketExel</Filter>
+    </ClCompile>
     <ClCompile Include="Clock.cpp">
-      <Filter>Session</Filter>
+      <Filter>Util</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="config.xml">
+      <Filter>Server</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

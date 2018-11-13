@@ -2,7 +2,6 @@
 #include "stdafx.h"
 
 
-
 class Package {
 public:
 	Session * session;

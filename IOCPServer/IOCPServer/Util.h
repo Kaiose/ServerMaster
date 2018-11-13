@@ -1,9 +1,10 @@
 #pragma once
+#include "stdafx.h"
 
 
-#define THREAD_COUNT	1
-#define RESOURCE_COUNT	10
-#define BUF_SIZE		1024 * 100
+#define THREAD_COUNT	8
+#define RESOURCE_COUNT	1000
+#define BUF_SIZE		1024 * 10
 #define CHAT_SIZE		512
 #define NAME_SIZE		16
 #define MIN				10
@@ -31,13 +32,13 @@ enum IO_Type {
 	IO_WRITE,
 	IO_ACCEPT,
 };
+static int sessionCount;
 
 class Session;
 
-
-
 #define session_it std::unordered_set<Session*>::iterator
 //#define session_it std::set<Session*>::iterator
+#define session_map_it std::unordered_map<int, Session*>::iterator
 
 struct IO_Data : public OVERLAPPED {
 public:

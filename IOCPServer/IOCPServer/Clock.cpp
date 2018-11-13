@@ -2,6 +2,7 @@
 #include "Clock.h"
 
 
+
 Clock::Clock()
 {
 	className = "Clock";
